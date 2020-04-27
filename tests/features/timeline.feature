@@ -11,47 +11,35 @@ Feature: Timeline paragraph.
     And I fill in "Title" with "Timeline paragraph test"
     And I press "Add Timeline"
     Then the following fields should be present "Label, Title, Content, Expand button"
-    When I fill in "Label" with "Label" in the "first" "Items" field element
+    When I fill in "Label" with "Item 1 Label" in the first "Items" field element
     And I press "Save"
     Then I should see the following error messages:
-      | error messages                                   |
-      | Title field is required if there is Label input. |
-    When I fill in "Label" with "" in the "first" "Items" field element
-    And I fill in "Title" with "Title" in the "first" "Items" field element
+      | error messages                                                                        |
+      | The Title field of Timeline paragraph is required when the Label field is specified. |
+    When I fill in "Label" with "" in the first "Items" field element
+    And I fill in "Title" with "Item 1 Title" in the first "Items" field element
     And I press "Save"
     Then I should see the following error messages:
-      | error messages                                   |
-      | Label field is required if there is Title input. |
-    When I fill in "Title" with "" in the "first" "Items" field element
-    And I fill in "Content" with "Content"
+      | error messages                                                                       |
+      | The Label field of Timeline paragraph is required when the Title field is specified. |
+    When I fill in "Title" with "" in the first "Items" field element
+    And I fill in "Content" with "Item 1 Content"
     And I press "Save"
     Then I should see the following error messages:
       | error messages                                     |
-      | Label field is required if there is Content input. |
-      | Title field is required if there is Content input. |
-    When I fill in "Label" with "Label" in the "first" "Items" field element
-    And I press "Save"
-    Then I should see the following error messages:
-      | error messages                                               |
-      | Title field is required if there is Label and Content input. |
-    When I fill in "Label" with "" in the "first" "Items" field element
-    When I fill in "Title" with "Title" in the "first" "Items" field element
-    And I press "Save"
-    Then I should see the following error messages:
-      | error messages                                               |
-      | Label field is required if there is Title and Content input. |
-    When I fill in "Label" with "Label 1" in the "first" "Items" field element
-    And I fill in "Title" with "Title 1" in the "first" "Items" field element
-    And I fill in "Content" with "Description 1" in the "first" "Items" field element
+      | The Label and Title fields of Timeline paragraph are required when the Content field is specified. |
+    When I fill in "Label" with "Item 1 Label" in the first "Items" field element
+    And I fill in "Title" with "Item 1 Title" in the first "Items" field element
+    And I fill in "Content" with "Item 1 Description" in the first "Items" field element
     And I press "Add another item"
-    And I fill in "Label" with "Label 2" in the "second" "Items" field element
-    And I fill in "Title" with "Title 2" in the "second" "Items" field element
-    And I fill in "Content" with "Description 2" in the "second" "Items" field element
+    And I fill in "Label" with "Item 2 Label" in the second "Items" field element
+    And I fill in "Title" with "Item 2 Title" in the second "Items" field element
+    And I fill in "Content" with "Item 2 Description" in the second "Items" field element
     And I press "Save"
     Then I should see the heading "Timeline paragraph test"
-    And I should see the text "Label 1"
-    And I should see the text "Title 1"
-    And I should see the text "Description 1"
-    And I should see the text "Label 2"
-    And I should see the text "Title 2"
-    And I should see the text "Description 2"
+    And I should see the text "Item 1 Label"
+    And I should see the text "Item 1 Title"
+    And I should see the text "Item 1 Description"
+    And I should see the text "Item 2 Label"
+    And I should see the text "Item 2 Title"
+    And I should see the text "Item 2 Description"

@@ -29,16 +29,20 @@ class RequiredFieldsValidator extends ConstraintValidator {
       if ($is_label_empty && $is_title_empty && !$is_body_empty) {
         $this->context->buildViolation($constraint->bodyNotEmpty)
           ->atPath((string) $delta)
+          ->setParameter('%label', '')
+          ->setParameter('%title', '')
           ->addViolation();
       }
       if ($is_label_empty && !$is_title_empty) {
         $this->context->buildViolation($constraint->labelRequired)
           ->atPath((string) $delta)
+          ->setParameter('%label', '')
           ->addViolation();
       }
       if (!$is_label_empty && $is_title_empty) {
         $this->context->buildViolation($constraint->titleRequired)
           ->atPath((string) $delta)
+          ->setParameter('%title', '')
           ->addViolation();
       }
     }
