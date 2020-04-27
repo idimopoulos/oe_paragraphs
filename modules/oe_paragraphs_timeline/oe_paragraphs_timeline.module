@@ -7,6 +7,7 @@
 
 declare(strict_types = 1);
 
+use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
@@ -27,112 +28,46 @@ function oe_paragraphs_timeline_field_widget_timeline_widget_form_alter(&$elemen
   // We can't use the protected isDefaultValueWidget() method.
   $is_default_value_widget = (bool) $form_state->get('default_value_widget');
 
-  if (!$is_default_value_widget) {
-    $element['#element_validate'][] = '_oe_paragraphs_validate_required_fields';
+  // If the default value of the widget did not change, we bail out.
+  if ($is_default_value_widget) {
+    return;
+  }
 
-    // Get the selector to build the paths for each field.
-    $field_name = $field_definition->getName();
-    $delta = $element['#delta'];
-    $parents = $element['#field_parents'];
-    $parents[] = $field_name;
-    $selector = $root = array_shift($parents);
-    if ($parents) {
-      $selector = $root . '[' . implode('][', $parents) . ']';
-    }
+  // Get the selector to build the paths for each field.
+  $field_name = $field_definition->getName();
+  $delta = $element['#delta'];
+  $parents = $element['#field_parents'];
+  $parents[] = $field_name;
+  $selector = array_shift($parents) . '[' . implode('][', $parents) . ']' . '[' . $delta;
 
-    // Set Label required if Title or Content is filled in.
-    if (!$element['label']['#required']) {
-      $element['label']['#states']['required'][] = [
-        'textarea[name="' . $selector . '[' . $delta . '][body][value]"]' => ['filled' => TRUE],
-      ];
-      $element['label']['#states']['required'][] = [
-        ':input[name="' . $selector . '[' . $delta . '][title]"]' => ['filled' => TRUE],
-      ];
-    }
-    // Set Label required if Title or Content is filled in.
-    if (!$element['title']['#required']) {
-      $element['title']['#states']['required'][] = [
-        'textarea[name="' . $selector . '[' . $delta . '][body][value]"]' => ['filled' => TRUE],
-      ];
-      $element['title']['#states']['required'][] = [
-        ':input[name="' . $selector . '[' . $delta . '][label]"]' => ['filled' => TRUE],
-      ];
-    }
+  // Set label required if title or content is filled in.
+  if (!$element['label']['#required']) {
+    $element['label']['#states']['required'][] = [
+      'textarea[name="' . $selector . '][body][value]"]' => ['filled' => TRUE],
+    ];
+    $element['label']['#states']['required'][] = [
+      ':input[name="' . $selector . '][title]"]' => ['filled' => TRUE],
+    ];
+  }
+  // Set label required if title or content is filled in.
+  if (!$element['title']['#required']) {
+    $element['title']['#states']['required'][] = [
+      'textarea[name="' . $selector . '][body][value]"]' => ['filled' => TRUE],
+    ];
+    $element['title']['#states']['required'][] = [
+      ':input[name="' . $selector . '][label]"]' => ['filled' => TRUE],
+    ];
   }
 }
 
 /**
- * Validate the required fields of Timeline paragraph.
+ * Implements hook_entity_bundle_field_info_alter().
  */
-function _oe_paragraphs_validate_required_fields($element, &$form_state, $form) {
-  // Set errors for Label field when any or both of the other 2 fields are
-  // filled in.
-  if ($element['label']['#value'] === '') {
-    if ($element['title']['#value'] !== '' && $element['body']['value']['#value'] !== '') {
-      $form_state->setErrorByName('label_empty',
-        t('@label field is required if there is @title and @body input.',
-          [
-            '@label' => $element['label']['#title'],
-            '@title' => $element['title']['#title'],
-            '@body' => $element['body']['#title'],
-          ]
-        )
-      );
-    }
-    if ($element['body']['value']['#value'] !== '' && $element['title']['#value'] === '') {
-      $form_state->setErrorByName('label_empty_body_input',
-        t('@label field is required if there is @body input.',
-          [
-            '@label' => $element['label']['#title'],
-            '@body' => $element['body']['#title'],
-          ]
-        )
-      );
-    }
-    if ($element['title']['#value'] !== '' && $element['body']['value']['#value'] === '') {
-      $form_state->setErrorByName('label_empty_title_input',
-        t('@label field is required if there is @title input.',
-          [
-            '@label' => $element['label']['#title'],
-            '@title' => $element['title']['#title'],
-          ]
-        )
-      );
-    }
-  }
-  // Set errors for Title field when any or both of the other 2 fields are
-  // filled in.
-  if ($element['title']['#value'] === '') {
-    if ($element['body']['value']['#value'] !== '' && $element['label']['#value'] !== '') {
-      $form_state->setErrorByName("title_empty",
-        t('@title field is required if there is @label and @body input.',
-          [
-            '@title' => $element['title']['#title'],
-            '@label' => $element['label']['#title'],
-            '@body' => $element['body']['#title'],
-          ]
-        )
-      );
-    }
-    if ($element['label']['#value'] !== '' && $element['body']['value']['#value'] === '') {
-      $form_state->setErrorByName("title_empty_label_input",
-        t('@title field is required if there is @label input.',
-          [
-            '@title' => $element['title']['#title'],
-            '@label' => $element['label']['#title'],
-          ]
-        )
-      );
-    }
-    if ($element['body']['value']['#value'] !== '' && $element['label']['#value'] === '') {
-      $form_state->setErrorByName("title_empty_body_input",
-        t('@title field is required if there is @body input.',
-          [
-            '@title' => $element['title']['#title'],
-            '@body' => $element['body']['#title'],
-          ]
-        )
-      );
+function oe_paragraphs_timeline_entity_bundle_field_info_alter(&$fields, EntityTypeInterface $entity_type, $bundle) {
+  // Add constraint to the paragraphs field of the Timeline paragraph.
+  if ($entity_type->id() === 'paragraph' && $bundle === 'oe_timeline') {
+    if (isset($fields['field_oe_timeline'])) {
+      $fields['field_oe_timeline']->addConstraint('OETimelineRequiredFields', []);
     }
   }
 }
