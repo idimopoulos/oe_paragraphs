@@ -67,7 +67,7 @@ function oe_paragraphs_timeline_entity_bundle_field_info_alter(&$fields, EntityT
   // Add constraint to the paragraphs field of the Timeline paragraph.
   if ($entity_type->id() === 'paragraph' && $bundle === 'oe_timeline') {
     if (isset($fields['field_oe_timeline'])) {
-      $fields['field_oe_timeline']->addConstraint('OETimelineRequiredFields', []);
+      $fields['field_oe_timeline']->addConstraint('oe_paragraphs_timeline_required_fields', []);
     }
   }
 }
