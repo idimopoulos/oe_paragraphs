@@ -83,3 +83,18 @@ Feature: Timeline paragraph.
     But I should not see the text "Item 2 label"
     And I should not see the text "Item 2 title"
     And I should not see the text "Item 2 content"
+
+  @javascript @run
+  Scenario: Timeline fields are marked visually as required.
+    Given I am logged in as a user with the "Editor" role
+    When I go to "the content management page"
+    And I click "Add content"
+    And I fill in "Title" with "Timeline paragraph fields test"
+    And I press "List additional actions"
+    And I press "Add Timeline"
+    And I wait for AJAX to finish
+    Then the "Label" in the "Items" field should be marked as required
+    # Fill the first item with values, so we can
+    And I fill in "Label" with "Item 1 label" in the first "Items" field element
+    And I fill in "Title" with "Item 1 title" in the first "Items" field element
+    And I press "Add another item"

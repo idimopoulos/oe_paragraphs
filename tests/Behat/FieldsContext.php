@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace Drupal\Tests\oe_paragraphs\Behat;
 
 use Behat\Gherkin\Node\TableNode;
+use Behat\Mink\Element\NodeElement;
 use Drupal\DrupalExtension\Context\RawDrupalContext;
 use Drupal\Tests\oe_paragraphs\Traits\TraversingTrait;
 use Drupal\Tests\oe_paragraphs\Traits\UtilityTrait;
@@ -28,10 +29,6 @@ class FieldsContext extends RawDrupalContext {
    * @param string $value
    *   The field value.
    *
-   * @throws \Exception
-   *   Thrown when the specified occurrence of the field or the field itself is
-   *   not found.
-   *
    * @Then I fill in the :position :field (field )with :value
    */
   public function fillNthField(string $position, string $field, string $value): void {
@@ -40,11 +37,7 @@ class FieldsContext extends RawDrupalContext {
     $position = $this->convertOrdinalToNumber($position) - 1;
 
     // Find all the fields with the specified name.
-    $fields = $this->getSession()->getPage()->findAll('named', ['field', $field]);
-
-    if (!$fields || !isset($fields[$position])) {
-      throw new \Exception(sprintf('Could not find field "%s" in position "%s".', $field, $position));
-    }
+    $fields = $this->getNthFieldElement($field, $position);
 
     $fields[$position]->setValue($value);
   }
@@ -80,10 +73,6 @@ class FieldsContext extends RawDrupalContext {
    * @param string $select
    *   The select element name.
    *
-   * @throws \Exception
-   *   Thrown when the specified occurrence of the list or the list itself is
-   *   not found.
-   *
    * @Then I select :option from the :position :select
    */
   public function selectNthOption(string $option, string $position, string $select): void {
@@ -92,12 +81,66 @@ class FieldsContext extends RawDrupalContext {
     $position = $this->convertOrdinalToNumber($position) - 1;
 
     // Find all the fields with the specified name.
+    $fields = $this->getNthFieldElement($field, $position);
+
+    $fields[$position]->selectOption($option);
+  }
+
+  /**
+   * @param string $field
+   * @param string $position
+   *
+   * @Then the :subfield in the :field field should be marked as required
+   * @Then the :subfield in the :position :field field should be marked as required
+   *
+   * @throws \Exception
+   */
+  public function assertSubFieldMarkedAsRequired(string $subfield, string $field, string $position = '1st') {
+    $position = $this->convertOrdinalToNumber($position) - 1;
+    $field = $this->getNthFieldElement($this->unescapeStepArgument($field), $position);
+
+    $subfield = $field->findField($subfield);
+    if (!$subfield) {
+      throw new \Exception(sprintf(
+        'Cannot find subfield "%s" inside the %s "%s".',
+        $subfield,
+        $position,
+        $field
+      ));
+    }
+
+    if (!$field->hasAttribute('required')) {
+      throw new \Exception(sprintf(
+        'The field "%s" at position %s is not marked as required in the markup.',
+        $field,
+        $position
+      ));
+    }
+  }
+
+  /**
+   * Returns the nth occurrence of an element in a page.
+   *
+   * @param string $field
+   *   The field element label.
+   * @param int $position
+   *   The ordinal position of the field amongst the ones with same label.
+   *
+   * @return \Behat\Mink\Element\NodeElement
+   *   The field element.
+   *
+   * @throws \Exception
+   *   Thrown when the specified occurrence of the field or the field itself is
+   *   not found.
+   */
+  protected function getNthFieldElement(string $field, int $position): NodeElement {
     $fields = $this->getSession()->getPage()->findAll('named', ['field', $field]);
+
     if (!$fields || !isset($fields[$position])) {
       throw new \Exception(sprintf('Could not find field "%s" in position "%s".', $field, $position));
     }
 
-    $fields[$position]->selectOption($option);
+    return $fields[$position];
   }
 
 }
